@@ -22,6 +22,11 @@ int main(int argc, char * argv[])
         {
             case 'H':
                 headerv[header_index++] = optarg;
+                if(MAX_HEADER <= header_index)
+                {
+                    printf("too many headers \n");
+                    header_index = 0;
+                }
                 break;
 
             case 'n':
@@ -29,7 +34,7 @@ int main(int argc, char * argv[])
                 break;
 
             default:
-                //error
+                printf("unknown option %c \n", o);
                 break;
         }
     }

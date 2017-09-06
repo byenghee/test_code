@@ -166,9 +166,13 @@ TestErrorCode StartTest(int header_count, const char * header[], int number_of_t
 
             if(test_job.number_of_try != number_of_test)
             {
+                /*even though test not done request times, if some done, use that info as best effort*/
                 printf("test number=%d not match requested number=%d\n", test_job.number_of_try,
                                                                          number_of_test);
             }
+
+            if(0 == test_job.number_of_try)
+                ret = TEST_FAIL;
         }
     }
 

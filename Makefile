@@ -33,5 +33,5 @@ app: lib
 
 clean: 
 	rm -f *.o
-	rm -f *.a:wildcard
+	rm -f *.a
 	rm -f *.exe
