@@ -10,7 +10,11 @@
 
 #define MAXTEST_NO (100U)
 #define MAXBUFF_SIZE (256U)
-//#define DEBUG
+#define DEBUG (0)
+
+#define DEBUG_PRINT(fmt, ...) \
+                do { if(DEBUG) \
+                printf(fmt, __VA_ARGS__); } while(0)
 
 typedef struct 
 {
@@ -27,15 +31,18 @@ static char target_url[] = "http://google.com";
 
 static size_t callback(char *buffer, size_t size, size_t nitems, void *job)
 {
-    /*just copy as much as header buffer*/
-    size_t ret = size * nitems;
-    size_t len = (MAXBUFF_SIZE < ret) ? MAXBUFF_SIZE : ret;
+    size_t ret = size * nitems;  
     TestJob *pJob = (TestJob *) job;
 
-    if('\0' != pJob->header[0])
-        memcpy((void *)pJob->header, (const void *)buffer, len);
+    if(NULL != pJob && '\0' == pJob->header[0])
+    {
+        /*just copy begining part of header on header buffer as much as buffer size*/
+        size_t len = (MAXBUFF_SIZE < ret) ? MAXBUFF_SIZE : ret;
 
-    pJob->header[MAXBUFF_SIZE - 1U] = '\0';
+        memcpy((void *)pJob->header, (const void *)buffer, len);
+        pJob->header[MAXBUFF_SIZE - 1U] = '\0';
+        DEBUG_PRINT("header saved %s \n", pJob->header);
+    }
 
     return ret;
 }
@@ -71,9 +78,7 @@ TestErrorCode StartTest(int header_count, const char * header[], int number_of_t
 
         for(i = 0; i < header_count && NULL != header[i]; i++)
         {
-#ifdef DEBUG
-            printf("Debug header = %s\n", header[i]);
-#endif
+            DEBUG_PRINT("Debug header = %s\n", header[i]);
             list = curl_slist_append(list, header[i]);
             if(NULL == list)
             {
@@ -113,12 +118,10 @@ TestErrorCode StartTest(int header_count, const char * header[], int number_of_t
                 {
                     printf("header data set fail \n");
                 }
-#ifdef DEBUG
-                else if(CURLE_OK != curl_easy_setopt(test_job.curl, CURLOPT_VERBOSE, 1L))
+                else if(CURLE_OK != curl_easy_setopt(test_job.curl, CURLOPT_VERBOSE, 0L))
                 {
                     printf("verbose set fail \n");
                 }
-#endif
                 else
                 {
                     printf("curl init/set option success \n");
@@ -155,9 +158,7 @@ TestErrorCode StartTest(int header_count, const char * header[], int number_of_t
                 }
                 else
                 {
-#ifdef DEBUG
-                    printf("Debug[%dth try] %.f, %f \n",i, lookup, total);
-#endif
+                    DEBUG_PRINT("Debug[%dth try] %.f, %f \n",i, lookup, total);
                     test_job.namelookuptime_sec += lookup;
                     test_job.totaltime_sec += total;
                     test_job.number_of_try++;
@@ -176,15 +177,15 @@ TestErrorCode StartTest(int header_count, const char * header[], int number_of_t
         }
     }
 
-    if(NULL != list)
-    {
-        curl_slist_free_all(list);
-    }
-
     if(NULL != test_job.curl)
     {
         curl_easy_cleanup(test_job.curl);
         test_job.curl = NULL;
+    }
+
+    if(NULL != list)
+    {
+        curl_slist_free_all(list);
     }
 
     return ret;

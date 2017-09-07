@@ -51,6 +51,10 @@ int main(int argc, char * argv[])
 
         printf("\n");
     }
+    else
+    {
+        printf("StartTest fail \n");
+    }
 
     return 0;
 }
